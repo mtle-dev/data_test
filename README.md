@@ -69,35 +69,7 @@ Most MLOps tools seem designed for people who love Kubernetes. Our data scientis
 
 📁 **Files**: [`report_A03.md`](report_A03.md) • [`report_A03_prompt.md`](report_A03_prompt.md) • [`a_03/`](a_03/)
 
-### **A04: Web/App Tracking Analysis**
-*Making sense of marketing attribution without losing your sanity*
 
-Marketing wants to know which ads are working. Product wants to know how users behave. Engineering wants to stop getting blamed when the numbers don't add up. This is my framework for building tracking systems that everyone can trust.
-
-**The reality**: AppsFlyer, Google Analytics, custom tracking, first-party data, third-party cookies going away, privacy regulations, cross-device tracking, and executives asking "why don't these numbers match?"
-
-**My approach**: Start with the business questions, design for privacy compliance from day one, and build attribution models that you can actually explain to stakeholders.
-
-**The honest part**: There's no perfect attribution model. But there are approaches that give you confidence in your decisions and sleep better at night.
-
-📁 **Files**: [`report_A04.md`](report_A04.md) • [`report_A04_prompt.md`](report_A04_prompt.md) • [`a_04/`](a_04/)
-
-### **A05: Real-Time Streaming Data Pipeline**
-*Scaling real-time processing beyond single-service pipelines*
-
-Building on my experience with Apache Flink pipelines at Parcel Perform (processing 1K+ messages/sec), this explores how I'd design larger-scale streaming architectures for enterprise data platforms.
-
-**The challenge**: Moving from service-specific data pipelines to a platform that supports multiple teams and use cases, while maintaining the reliability and performance I've achieved in production.
-
-**My approach**: 
-- Kafka for reliable messaging (building on my production Kafka experience)
-- Flink for stream processing (scaling up from my current single-pipeline work)
-- Monitoring and alerting patterns from my operations experience
-- Team coordination for managing shared streaming infrastructure
-
-**Context**: This extends my hands-on streaming experience to explore architectural and leadership challenges at larger scale.
-
-📁 **Files**: [`report_A05.md`](report_A05.md) • [`report_A05_prompt.md`](report_A05_prompt.md) • [`a_05/`](a_05/)
 
 ---
 
@@ -178,8 +150,6 @@ data_test/
 ├── a_01/    # AWS platform from scratch
 ├── a_02/    # Dask for distributed computing
 ├── a_03/    # MLOps with Metaflow
-├── a_04/    # Marketing attribution that makes sense
-├── a_05/    # Real-time streaming (actually real-time)
 ├── b_01/    # Teaching vector databases
 └── b_05/    # PMO for data teams
 ```
