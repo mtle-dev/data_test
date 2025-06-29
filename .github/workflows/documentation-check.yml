@@ -1,0 +1,156 @@
+name: Documentation Quality Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run weekly to check for broken links
+    - cron: '0 0 * * 0'
+
+jobs:
+  documentation-lint:
+    runs-on: ubuntu-latest
+    name: Documentation Validation
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install markdownlint-cli
+      run: npm install -g markdownlint-cli
+      
+    - name: Run markdownlint
+      run: markdownlint --config .markdownlint.json **/*.md || true
+      
+    - name: Check for broken internal links
+      run: |
+        echo "Checking for broken internal links..."
+        find . -name "*.md" -exec grep -l "\[.*\](.*\.md)" {} \; | while read file; do
+          echo "Checking links in: $file"
+          grep -o "\[.*\](.*\.md)" "$file" | sed 's/.*(\(.*\))/\1/' | while read link; do
+            if [ ! -f "$link" ] && [ ! -f "$(dirname "$file")/$link" ]; then
+              echo "Broken link found in $file: $link"
+            fi
+          done
+        done
+
+  file-structure-check:
+    runs-on: ubuntu-latest
+    name: Repository Structure Validation
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Validate repository structure
+      run: |
+        echo "Validating repository structure..."
+        
+        # Check for required files
+        required_files=("README.md" "LICENSE" "CONTRIBUTING.md" ".gitignore")
+        for file in "${required_files[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Required file missing: $file"
+            exit 1
+          else
+            echo "✅ Found required file: $file"
+          fi
+        done
+        
+        # Check for report structure
+        report_dirs=("a_01" "a_02" "a_03" "a_04" "a_05" "b_01" "b_05")
+        for dir in "${report_dirs[@]}"; do
+          if [ ! -d "$dir" ]; then
+            echo "❌ Report directory missing: $dir"
+            exit 1
+          else
+            echo "✅ Found report directory: $dir"
+          fi
+        done
+        
+        # Check for main report files
+        main_reports=("report_A01.md" "report_A02.md" "report_A03.md" "report_A04.md" "report_A05.md" "report_B01.md" "report_B05.md")
+        for report in "${main_reports[@]}"; do
+          if [ ! -f "$report" ]; then
+            echo "❌ Main report missing: $report"
+            exit 1
+          else
+            echo "✅ Found main report: $report"
+          fi
+        done
+        
+        echo "🎉 Repository structure validation passed!"
+
+  security-check:
+    runs-on: ubuntu-latest
+    name: Security and Quality Check
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Check for sensitive data
+      run: |
+        echo "Checking for sensitive data patterns..."
+        
+        # Check for common sensitive patterns
+        sensitive_patterns=(
+          "password\s*=\s*['\"][^'\"]*['\"]"
+          "api[_-]?key\s*=\s*['\"][^'\"]*['\"]"
+          "secret\s*=\s*['\"][^'\"]*['\"]"
+          "token\s*=\s*['\"][^'\"]*['\"]"
+          "aws[_-]?access[_-]?key"
+          "aws[_-]?secret[_-]?key"
+        )
+        
+        found_sensitive=false
+        for pattern in "${sensitive_patterns[@]}"; do
+          if grep -r -i -E "$pattern" . --exclude-dir=.git --exclude-dir=.github; then
+            echo "❌ Potential sensitive data found: $pattern"
+            found_sensitive=true
+          fi
+        done
+        
+        if [ "$found_sensitive" = true ]; then
+          echo "❌ Security check failed - sensitive data detected"
+          exit 1
+        else
+          echo "✅ Security check passed - no sensitive data detected"
+        fi
+
+  badge-update:
+    runs-on: ubuntu-latest
+    name: Update Repository Badges
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Count assessments and generate stats
+      run: |
+        echo "Generating repository statistics..."
+        
+        # Count main reports
+        report_count=$(ls report_*.md 2>/dev/null | wc -l)
+        echo "Total reports: $report_count"
+        
+        # Count total lines of documentation
+        total_lines=$(find . -name "*.md" -not -path "./.git/*" -exec wc -l {} + | tail -1 | awk '{print $1}')
+        echo "Total documentation lines: $total_lines"
+        
+        # Count code examples (approximate)
+        code_blocks=$(grep -r "```" . --include="*.md" | wc -l)
+        echo "Code blocks: $code_blocks"
+        
+        # Store stats in environment file for potential badge updates
+        echo "REPORT_COUNT=$report_count" >> $GITHUB_ENV
+        echo "TOTAL_LINES=$total_lines" >> $GITHUB_ENV
+        echo "CODE_BLOCKS=$code_blocks" >> $GITHUB_ENV 
